@@ -8,6 +8,8 @@ import click
 
 from flask_login import LoginManager
 
+from flask import flash, redirect, url_for
+
 from .models import *
 
 db = SQLAlchemy()
@@ -51,9 +53,21 @@ def create_app(test_config=None):
     from . import auth
     app.register_blueprint(auth.bp)
 
+    from . import reckons
+    app.register_blueprint(reckons.bp)
+
     return app
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.filter_by(id=user_id).first()
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash({
+        "message": "You need to be logged in to do that.",
+        "style": "danger"
+        })
+    return redirect(url_for('auth.login'))

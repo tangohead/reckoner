@@ -1,0 +1,126 @@
+{% extends 'reckon_base.html' %}
+
+{% block title %}View Reckons{% endblock %}
+
+{% block header %}
+<h2>Reckon Directory</h2>
+{% endblock %}
+
+{% block content %}
+
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h3> Active </h3>
+
+    {% with reckons = g.reckons %}
+        {% if reckons %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            Question
+                        </th>
+                        <th scope="col">
+                            Posed By
+                        </th>
+                        <th scope="col">
+                            Ends
+                        </th>
+                        <th scope="col">
+                            Edit
+                        </th>
+                        <th scope="col">
+                            Answer
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for reckon in reckons %}
+                    {% if reckon.ended == false %}
+                    <tr>
+                        <td>
+                            {{ reckon.question }}
+                        </td>
+                        <td>
+                            {{ reckon.user.name }}
+                        </td>
+                        <td>
+                            {{ reckon.end_date }}
+                        </td>
+                        <td>
+                            {% if current_user.id == reckon.creator_id %}
+                                <a href="{{ url_for('reckons.edit', id=reckon.id)}}"> Edit </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('reckons.answer', id=reckon.id) }}"> Answer </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            No reckons exist yet. <a href="{{ url_for('reckons.create') }}">
+                Create one?
+                </a>
+        {% endif %}
+    {% endwith %}
+
+    <h3>Ended</h3>
+
+    {% with reckons = g.reckons %}
+        {% if reckons %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            Question
+                        </th>
+                        <th scope="col">
+                            Posed By
+                        </th>
+                        <th scope="col">
+                            Ends
+                        </th>
+                        <th scope="col">
+                            Settle
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for reckon in reckons %}
+                    {% if reckon.ended == true %}
+                    <tr>
+                        <td>
+                            {{ reckon.question }}
+                        </td>
+                        <td>
+                            {{ reckon.user.name }}
+                        </td>
+                        <td>
+                            {{ reckon.end_date }}
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            No reckons have ended yet.
+        {% endif %}
+    {% endwith %}
+{% endblock %}

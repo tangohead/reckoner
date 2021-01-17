@@ -1,9 +1,13 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
+
+{% block title %}
+    Account Page
+{% endblock %}
 
 {% block header %}
-<h2>{% block title %}Hello{% endblock %}</h2>
+<h2>Hello {{ current_user.name }}</h2>
 {% endblock %}
 
 {% block content %}
-
+    {{ current_user.name }}
 {% endblock %}

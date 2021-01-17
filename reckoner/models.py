@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask.cli import with_appcontext
 
+from flask_login import UserMixin
+
 import click
 # app = Flask(__name__)
 
@@ -15,8 +17,18 @@ class Reckon(db.Model):
     edit_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime, nullable=False)
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ended = db.Column(db.Boolean, nullable=False, default=False)
 
     user = db.relationship('User', backref=db.backref('reckons', lazy=True))
+
+class ReckonAnswer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
+    reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
+    creation_date = db.Column(db.DateTime, nullable=False)
+
+    reckon = db.relationship('Reckon', backref=db.backref('answer', lazy=True))
+    
 
 class ReckonOption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,7 +49,7 @@ class ReckonResponse(db.Model):
     user = db.relationship('User', backref=db.backref('responses', lazy=True))
     reckon_option = db.relationship('ReckonOption', backref=db.backref('responses', lazy=True))
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), nullable=False)

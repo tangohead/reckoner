@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
 
 {% block header %}
 <h2>{% block title %}Register{% endblock %}</h2>
@@ -6,26 +6,33 @@
 
 {% block content %}
 
-    {% for message in get_flashed_messages() %}
-        <div class="alert alert-danger" role="alert">
-           {{ message }}
-        </div>
-    {% endfor %}
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form method="post">
         <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
             <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" required>
-            <div id="emailHelp" class="form-text"></div>
         </div>
         <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input type="name" class="form-control" id="name" name="name" aria-describedby="nameHelp" required>
-            <div id="nameHelp" class="form-text"></div>
+            <div id="nameHelp" class="form-text">Whatever you want to go by!</div>
         </div>
         <div class="mb-3">
             <label for="password1" class="form-label">Password</label>
             <input type="password" class="form-control" id="password1" name="password1" required>
+            <div id="passwordHelp" class="form-text">Passwords must be over 8 characters.</div>
         </div>
         <div class="mb-3">
             <label for="password2" class="form-label">Re-enter Password</label>

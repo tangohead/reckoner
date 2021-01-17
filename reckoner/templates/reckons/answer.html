@@ -1,0 +1,54 @@
+{% extends 'reckon_base.html' %}
+
+{% block header %}
+<h2>{% block title %}Answer Reckon{% endblock %}</h2>
+{% endblock %}
+
+{% block content %}
+
+    
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="row justify-content-md-center">
+    <div class="col-9">
+        <form method="post">
+
+            <div class="mb-3">
+                <h4 >Question</h4>
+                <b>{{reckon.question}}</b>
+            </div>
+
+            <p>End date: {{reckon.end_date}}</p>
+
+            <p>Enter your estimate of the probability of each option occurring. Probabilities must sum to one.</p>
+            <table class="table table-striped">
+            <thead>
+                <th>Options</th>
+                <th style="width: 20%">Probabilities</th>
+            </thead>
+            <tbody>
+            {% for option in reckon.options %}
+                <tr>
+                    <td>{{option.option}}</td>
+                    <td>
+                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="questionHelp" value="{{ request.form["option{{option.id}}"] }}" required>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

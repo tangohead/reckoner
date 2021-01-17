@@ -1,19 +1,31 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
 
 {% block header %}
 <h2>{% block title %}Login{% endblock %}</h2>
 {% endblock %}
 
 {% block content %}
+    {% with flash_messages = get_flashed_messages() %}
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <form method="post">
         <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="email" aria-describedby="emailHelp">
+            <input type="email" class="form-control" id="email" aria-describedby="emailHelp" name="email">
             <div id="emailHelp" class="form-text"></div>
         </div>
         <div class="mb-3">
-            <label for="password1" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password1">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password">
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
