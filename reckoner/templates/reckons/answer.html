@@ -41,10 +41,11 @@
                 <tr>
                     <td>{{option.option}}</td>
                     <td>
-                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="questionHelp" value="{{ request.form["option{{option.id}}"] }}" required>
+                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ]}}"] }}" required>
                     </td>
                 </tr>
             {% endfor %}
+
             </tbody>
             </table>
             <button type="submit" class="btn btn-primary">Submit</button>

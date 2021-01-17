@@ -199,6 +199,16 @@ def answer(id):
     reckon = Reckon.query.filter_by(id=id).first()
 
     if request.method == "POST":
-        pass
+        response_keys = {}
+        for option in reckon.options:
+            name = "option{}".format(option.id)
+            response_keys[name] = float(request.form[name])
+
+        if sum(response_keys.values()) != 1.0:
+            flash({
+                "message": "Probabilities must sum to one.",
+                "style": "danger"
+            })
+            return render_template('reckons/answer.html', reckon=reckon)        
 
     return render_template('reckons/answer.html', reckon=reckon)
