@@ -47,6 +47,7 @@ class User(db.Model):
     reckon_response = db.relationship('ReckonResponse', backref=db.backref('reckon_responses', lazy=True))
 
 
+
 # Define command line arg called init-db 
 @click.command('init-db')
 @with_appcontext
