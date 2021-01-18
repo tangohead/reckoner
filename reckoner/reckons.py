@@ -341,6 +341,9 @@ def board(id):
                 order_by(ReckonResponse.response_date.desc()).first()
         if response is not None:
             user_responses.append(response)
-        
 
-    return render_template('reckons/board.html', reckon=reckon, responses=user_responses)
+    
+    # Check for a settle
+    settle = SettledReckon.query.filter_by(reckon_id=reckon.id).first()        
+
+    return render_template('reckons/board.html', reckon=reckon, responses=user_responses, settle=settle)

@@ -30,9 +30,15 @@
                     Name
                 </th>
                 {% for option in reckon.options %}
-                    <th scope="col">
-                        {{option.option}}
-                    </th>
+                    {% if settle %}
+                        <th scope="col" {{'class=table-success' if option.id == settle.reckon_option_id }} >
+                            {{option.option}}
+                        </th>
+                    {% else %}
+                        <th scope="col" >
+                            {{option.option}}
+                        </th>
+                    {% endif %}
                 {% endfor %}
             </tr>
         </thead>
@@ -41,7 +47,11 @@
                 <tr>
                     <td>{{response.reckon_responses.name}}</td>
                 {% for answer in response.response_answers %}
-                    <td>{{answer.probability}}</td>
+                    {% if settle %}
+                        <td {{'class=table-success' if answer.reckon_option_id == settle.reckon_option_id }}>{{answer.probability}}</td>
+                    {% else %}
+                        <td>{{answer.probability}}</td>
+                    {% endif %}
                 {% endfor %}
                 </tr>
             {% endfor %}
