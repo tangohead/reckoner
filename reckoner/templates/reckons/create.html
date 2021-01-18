@@ -6,6 +6,20 @@
 
 {% block content %}
 
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" href="{{url_for('reckons.view')}}">View All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active"  aria-current="page"href="{{url_for('reckons.create')}}">Create</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+    </ul>
     
     {% with flash_messages = get_flashed_messages() %}
 

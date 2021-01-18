@@ -21,13 +21,13 @@ class Reckon(db.Model):
 
     user = db.relationship('User', backref=db.backref('reckons', lazy=True))
 
-class ReckonAnswer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
-    reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
-    creation_date = db.Column(db.DateTime, nullable=False)
+# class ReckonAnswer(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
+#     reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
+#     creation_date = db.Column(db.DateTime, nullable=False)
 
-    reckon = db.relationship('Reckon', backref=db.backref('answer', lazy=True))
+#     reckon = db.relationship('Reckon', backref=db.backref('answer', lazy=True))
 
 class ReckonOption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,7 +46,7 @@ class ReckonResponse(db.Model):
     user = db.relationship('User', backref=db.backref('responses', lazy=True))
     
 
-class ReckonAnswerResponse(db.Model):
+class ReckonOptionResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reckon_response_id = db.Column(db.Integer, db.ForeignKey('reckon_response.id'), nullable=False)
     reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
@@ -55,13 +55,23 @@ class ReckonAnswerResponse(db.Model):
     reckon_response = db.relationship('ReckonResponse', backref=db.backref('response_answers', lazy=True))
     reckon_option = db.relationship('ReckonOption', backref=db.backref('responses', lazy=True))
 
+class SettledReckon(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False, unique=True)
+    reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
+    settled_date = db.Column(db.DateTime, nullable=False)
+
+    reckon_settle = db.relationship('Reckon', backref=db.backref('settled', lazy=True))
+
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String, nullable=False)
 
-    reckon = db.relationship('Reckon', backref=db.backref('reckons_made', lazy=True))
+    # Change this to creator
+    reckon = db.relationship('Reckon', backref=db.backref('creator', lazy=True))
     reckon_response = db.relationship('ReckonResponse', backref=db.backref('reckon_responses', lazy=True))
 
 

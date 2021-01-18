@@ -7,7 +7,7 @@ from flask import (
 from flask_login import login_required, current_user
 
 from .__init__ import db, login_manager
-from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonAnswerResponse
+from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonOptionResponse, SettledReckon
 
 bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 
@@ -240,7 +240,7 @@ def answer(id):
             db.session.commit()
 
             for k,v in response_keys.items():
-                new_answer_response = ReckonAnswerResponse(
+                new_answer_response = ReckonOptionResponse(
                     reckon_response_id = new_response.id,
                     probability = v,
                     reckon_option_id = k
@@ -256,3 +256,91 @@ def answer(id):
 
 
     return render_template('reckons/answer.html', reckon=reckon, previous_reckon_answers=previous_reckon_answers)
+
+@bp.route('/settle/<int:id>', methods=('GET', 'POST'))
+@login_required
+def settle(id):
+
+    reckon = Reckon.query.filter_by(id=id).first()
+    
+    if reckon is None:
+        flash({
+            "message": "Invalid reckon ID.",
+            "style": "danger"
+        })
+        return redirect(url_for('reckons.view'))
+
+    # Check if it has been settled and we are updating
+    settle = SettledReckon.query.filter_by(reckon_id = reckon.id).first()
+    
+    if request.method == "POST":
+        correct_option = request.form["correct_option"]
+
+        # Check this is a valid option
+        if ReckonOption.query.filter_by(id = correct_option).first() is None:
+            flash({
+                "message": "Invalid option ID.",
+                "style": "danger"
+            })
+            return redirect(url_for('reckons.settle'))
+        
+
+
+        if settle is None:
+            # Commit a new settle
+            new_settle = SettledReckon(
+                reckon_id = reckon.id,
+                reckon_option_id = correct_option,
+                settled_date = datetime.now()
+            )
+            db.session.add(new_settle)
+        else:
+            # update the existing one
+            settle.reckon_option_id = correct_option
+            settle.settled_date = datetime.now()
+            db.session.add(settle)
+        
+        db.session.commit()
+
+        # Finally end the reckon
+        reckon.ended = True
+        db.session.add(reckon)
+        db.session.commit()
+
+        flash({
+            "message": "Reckon settled successfully.",
+            "style": "success"
+        })
+
+        return redirect(url_for('reckons.view'))
+
+
+    return render_template('reckons/settle.html', reckon=reckon, settle=settle)
+
+@bp.route('/board/<int:id>')
+@login_required
+def board(id):
+    reckon = Reckon.query.filter_by(id=id).first()
+    
+    if reckon is None:
+        flash({
+            "message": "Invalid reckon ID.",
+            "style": "danger"
+        })
+        return redirect(url_for('reckons.view'))
+
+    # Get the list of users who have responded
+    user_ids = set([i.user_id for i in reckon.responses])
+
+    user_responses = []
+
+    # Now get the newest response from each
+    for user_id in user_ids:
+        response = ReckonResponse.query.\
+            filter_by(reckon_id = reckon.id, user_id = user_id).\
+                order_by(ReckonResponse.response_date.desc()).first()
+        if response is not None:
+            user_responses.append(response)
+        
+
+    return render_template('reckons/board.html', reckon=reckon, responses=user_responses)

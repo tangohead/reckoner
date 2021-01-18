@@ -21,6 +21,17 @@
         {% endif %}
     {% endwith %}
 
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{{url_for('reckons.view')}}">Active All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{url_for('reckons.create')}}">Create</a>
+        </li>
+    </ul>
+
+    <div class="row py-3">
+    <div class="col-12">
     <h3> Active </h3>
 
     {% with reckons = g.reckons %}
@@ -73,8 +84,14 @@
                             <a href="{{ url_for('reckons.answer', id=reckon.id) }}"> Answer </a>
                         </td>
                         <td>
+                            <a href="{{ url_for('reckons.board', id=reckon.id) }}"> Board </a>
                         </td>
                         <td>
+                            {% if reckon.creator_id == current_user.id %}
+                                <a href="{{ url_for('reckons.settle', id=reckon.id)}}">
+                                    Settle
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endif %}
@@ -88,6 +105,11 @@
         {% endif %}
     {% endwith %}
 
+    </div>
+    </div>
+
+    <div class="row py-2">
+    <div class="col-12">
     <h3>Ended</h3>
 
     {% with reckons = g.reckons %}
@@ -123,6 +145,11 @@
                             {{ reckon.end_date }}
                         </td>
                         <td>
+                            {% if reckon.creator_id == current_user.id %}
+                                <a href="{{ url_for('reckons.settle', id=reckon.id)}}">
+                                    Settle
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endif %}
@@ -133,4 +160,7 @@
             No reckons have ended yet.
         {% endif %}
     {% endwith %}
+
+    </div>
+    </div>
 {% endblock %}

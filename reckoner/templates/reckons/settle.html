@@ -1,0 +1,64 @@
+{% extends 'reckon_base.html' %}
+
+{% block header %}
+<h2>{% block title %}Settle a Reckon{% endblock %}</h2>
+{% endblock %}
+
+{% block content %}
+
+    
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="row justify-content-md-center">
+    <div class="col-9">
+        <form method="post">
+        
+            <div class="mb-3">
+                <b>Question: {{reckon.question}}</b>
+            </div>
+        
+            <p>End date: {{reckon.end_date}}</p>
+
+            {% if settle %}
+                <p> This reckon has already ended but you can change the correct answer below.</p>
+            {% else %}
+                <p>Settling this reckon will end it immediately, even if the end date has not passed.</p>
+            {% endif %}
+        
+            <div class="row justify-content-md-center">
+                <div class="col-9">
+                    <table class="table table-striped">
+                        <thead>
+                            <th>Options</th>
+                            <th style="width: 30%">Correct Answer</th>
+                        </thead>
+                        <tbody>
+                            {% for option in reckon.options %}
+                            <tr>
+                                <td>{{option.option}}</td>
+                                <td style="text-align:center">
+                                    <input type="radio" class="form-check-input" id="correct_option" name="correct_option"
+                                        value={{option.id}} aria-describedby="optionHelp" {{"checked" if option.id == settle.reckon_option_id }}>
+                                </td>
+                            </tr>
+                            {% endfor %}
+        
+                        </tbody>
+                    </table>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

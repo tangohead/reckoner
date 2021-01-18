@@ -1,0 +1,51 @@
+{% extends 'reckon_base.html' %}
+
+{% block title %}View Reckons{% endblock %}
+
+{% block header %}
+<h2>Reckon Board</h2>
+{% endblock %}
+
+{% block content %}
+
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <b>Question: {{reckon.question}}</b>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">
+                    Name
+                </th>
+                {% for option in reckon.options %}
+                    <th scope="col">
+                        {{option.option}}
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for response in responses %}
+                <tr>
+                    <td>{{response.reckon_responses.name}}</td>
+                {% for answer in response.response_answers %}
+                    <td>{{answer.probability}}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>   
+
+{% endblock %}
