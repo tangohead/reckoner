@@ -7,7 +7,7 @@ from flask import (
 from flask_login import login_required, current_user
 
 from .__init__ import db, login_manager
-from .models import User, Reckon, ReckonOption, ReckonResponse
+from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonAnswerResponse
 
 bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 
@@ -198,13 +198,23 @@ def answer(id):
 
     reckon = Reckon.query.filter_by(id=id).first()
 
+    # First check if this reckon has ended, and prevent answers if so
+    if reckon.end_date < datetime.now():
+        flash({
+            "message": "This reckon has ended, so is not accepting any more answers. Please wait for it to be settled.",
+            "style": "info"
+        })
+        return redirect(url_for('reckons.view'))
+
+    last_response = ReckonResponse.query.filter_by(user_id=current_user.id).order_by(ReckonResponse.response_date.desc()).first()
+    #print(last_response.response_answers)
     # Get the newest guesses so they can be loaded up
-    previous_reckon_answers = {}
-    for option in reckon.options:
-        name = "option{}".format(option.id)
-        previous_reckon_answers[name] = ReckonResponse.query.\
-        filter_by(user_id=current_user.id, reckon_option_id=option.id).\
-            order_by(ReckonResponse.response_date.desc()).first()
+    previous_reckon_answers = None
+    if last_response is not None:
+        previous_reckon_answers = {}
+        for response_answer in last_response.response_answers:
+            name = "option{}".format(response_answer.reckon_option_id)
+            previous_reckon_answers[name] = response_answer.probability
 
     if request.method == "POST":
         response_keys = {}
@@ -221,15 +231,22 @@ def answer(id):
             })
             return render_template('reckons/answer.html', reckon=reckon)
         else:
-            for k,v in response_keys.items():
-                new_response = ReckonResponse(
+            new_response = ReckonResponse(
                     reckon_id = reckon.id,
                     user_id = current_user.id,
-                    reckon_option_id = k,
-                    probability = v,
                     response_date = datetime.now()
                 )
-                db.session.add(new_response)
+            db.session.add(new_response)
+            db.session.commit()
+
+            for k,v in response_keys.items():
+                new_answer_response = ReckonAnswerResponse(
+                    reckon_response_id = new_response.id,
+                    probability = v,
+                    reckon_option_id = k
+                )
+                db.session.add(new_answer_response)
+                
             db.session.commit()
             flash({
                 "message": "Your reckon has been reckoned.",

@@ -41,7 +41,11 @@
                 <tr>
                     <td>{{option.option}}</td>
                     <td>
-                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ] or previous_reckon_answers["option%s" % option.id ].probability }}" required>
+                        {% if previous_reckon_answers %}
+                            <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ] or previous_reckon_answers["option%s" % option.id ] }}" required>
+                        {% else %}
+                            <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ]}}" required>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

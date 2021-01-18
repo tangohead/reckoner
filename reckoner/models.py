@@ -28,7 +28,6 @@ class ReckonAnswer(db.Model):
     creation_date = db.Column(db.DateTime, nullable=False)
 
     reckon = db.relationship('Reckon', backref=db.backref('answer', lazy=True))
-    
 
 class ReckonOption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,12 +40,19 @@ class ReckonResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
-    probability = db.Column(db.Float, nullable=False)
     response_date = db.Column(db.DateTime, nullable=False)
     
     reckon = db.relationship('Reckon', backref=db.backref('responses', lazy=True))
     user = db.relationship('User', backref=db.backref('responses', lazy=True))
+    
+
+class ReckonAnswerResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reckon_response_id = db.Column(db.Integer, db.ForeignKey('reckon_response.id'), nullable=False)
+    reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
+    probability = db.Column(db.Float, nullable=False)
+
+    reckon_response = db.relationship('ReckonResponse', backref=db.backref('response_answers', lazy=True))
     reckon_option = db.relationship('ReckonOption', backref=db.backref('responses', lazy=True))
 
 class User(db.Model, UserMixin):
