@@ -1,7 +1,7 @@
 {% extends 'reckon_base.html' %}
 
 {% block header %}
-<h2>{% block title %}Answer Reckon{% endblock %}</h2>
+<h2>{% block title %}What do you reckon?{% endblock %}</h2>
 {% endblock %}
 
 {% block content %}
@@ -41,7 +41,7 @@
                 <tr>
                     <td>{{option.option}}</td>
                     <td>
-                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ]}}"] }}" required>
+                        <input type="text" class="form-control" id="option{{option.id}}" name="option{{option.id}}" aria-describedby="optionHelp" value="{{ request.form["option%s" % option.id ] or previous_reckon_answers["option%s" % option.id ].probability }}" required>
                     </td>
                 </tr>
             {% endfor %}

@@ -198,17 +198,44 @@ def answer(id):
 
     reckon = Reckon.query.filter_by(id=id).first()
 
+    # Get the newest guesses so they can be loaded up
+    previous_reckon_answers = {}
+    for option in reckon.options:
+        name = "option{}".format(option.id)
+        previous_reckon_answers[name] = ReckonResponse.query.\
+        filter_by(user_id=current_user.id, reckon_option_id=option.id).\
+            order_by(ReckonResponse.response_date.desc()).first()
+
     if request.method == "POST":
         response_keys = {}
         for option in reckon.options:
             name = "option{}".format(option.id)
-            response_keys[name] = float(request.form[name])
+            response_keys[option.id] = float(request.form[name])
+            if request.form[name] is None:
+                response_keys[option.id] = 0.0
 
         if sum(response_keys.values()) != 1.0:
             flash({
                 "message": "Probabilities must sum to one.",
                 "style": "danger"
             })
-            return render_template('reckons/answer.html', reckon=reckon)        
+            return render_template('reckons/answer.html', reckon=reckon)
+        else:
+            for k,v in response_keys.items():
+                new_response = ReckonResponse(
+                    reckon_id = reckon.id,
+                    user_id = current_user.id,
+                    reckon_option_id = k,
+                    probability = v,
+                    response_date = datetime.now()
+                )
+                db.session.add(new_response)
+            db.session.commit()
+            flash({
+                "message": "Your reckon has been reckoned.",
+                "style": "success"
+            })
+            return redirect(url_for('reckons.view'))
 
-    return render_template('reckons/answer.html', reckon=reckon)
+
+    return render_template('reckons/answer.html', reckon=reckon, previous_reckon_answers=previous_reckon_answers)
