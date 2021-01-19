@@ -21,20 +21,13 @@
         {% endif %}
     {% endwith %}
 
-    <ul class="nav nav-tabs">
-        <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{url_for('reckons.view')}}">Active All</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{url_for('reckons.create')}}">Create</a>
-        </li>
-    </ul>
+    {% include 'reckons/nav.html' %}
+
 
     <div class="row py-3">
     <div class="col-12">
-    <h3> Active </h3>
 
-    {% with reckons = g.reckons %}
+    {% if show_active %} 
         {% if reckons %}
             <table class="table table-striped">
                 <thead>
@@ -103,74 +96,70 @@
                 Create one?
                 </a>
         {% endif %}
-    {% endwith %}
+                
+            </div>
+        </div>
+    {% else %}
 
-    </div>
-    </div>
-
-    <div class="row py-2">
-    <div class="col-12">
-    <h3>Ended</h3>
-
-    {% with reckons = g.reckons %}
-        {% if reckons %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">
-                            Question
-                        </th>
-                        <th scope="col">
-                            Posed By
-                        </th>
-                        <th scope="col">
-                            Ends
-                        </th>
-                        <th scope="col">
-                            Final Board
-                        </th>
-                        <th scope="col">
-                            Settle
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for reckon in reckons %}
-                    {% if reckon.ended == true %}
-                    <tr>
-                        <td>
-                            {{ reckon.question }}
-                        </td>
-                        <td>
-                            {{ reckon.user.name }}
-                        </td>
-                        <td>
-                            {{ reckon.end_date }}
-                        </td>
-                        <td>
-                            {% if reckon.creator_id == current_user.id %}
-                                <a href="{{ url_for('reckons.board', id=reckon.id)}}">
-                                    Board
-                                </a>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if reckon.creator_id == current_user.id %}
-                                <a href="{{ url_for('reckons.settle', id=reckon.id)}}">
-                                    Settle
-                                </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endif %}
-                {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            No reckons have ended yet.
+        <div class="row py-2">
+            <div class="col-12">
+            {% if reckons %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                Question
+                            </th>
+                            <th scope="col">
+                                Posed By
+                            </th>
+                            <th scope="col">
+                                Ends
+                            </th>
+                            <th scope="col">
+                                Final Board
+                            </th>
+                            <th scope="col">
+                                Settle
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for reckon in reckons %}
+                        {% if reckon.ended == true %}
+                        <tr>
+                            <td>
+                                {{ reckon.question }}
+                            </td>
+                            <td>
+                                {{ reckon.user.name }}
+                            </td>
+                            <td>
+                                {{ reckon.end_date }}
+                            </td>
+                            <td>
+                                {% if reckon.creator_id == current_user.id %}
+                                    <a href="{{ url_for('reckons.board', id=reckon.id)}}">
+                                        Board
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if reckon.creator_id == current_user.id %}
+                                    <a href="{{ url_for('reckons.settle', id=reckon.id)}}">
+                                        Settle
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                No reckons have ended yet.
+            {% endif %}
+        </div>
+        </div>
         {% endif %}
-    {% endwith %}
-
-    </div>
-    </div>
 {% endblock %}

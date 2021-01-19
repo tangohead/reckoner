@@ -1,0 +1,11 @@
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link {{ "active" if current_page == "view_active" }}" aria-current="page" href="{{url_for('reckons.view', status="active")}}">Active</a>
+    </li>
+    <li>
+        <a class="nav-link {{ "active" if current_page == "view_ended" }}" aria-current="page" href="{{url_for('reckons.view', status="ended")}}">Ended</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ "active" if current_page == "create" }}" href="{{url_for('reckons.create')}}">Create</a>
+    </li>
+</ul>

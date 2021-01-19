@@ -11,16 +11,29 @@ from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonOptionResp
 
 bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 
-@bp.route('view')
+@bp.route('view', defaults={"status":"active"})
+@bp.route('view/<status>')
 @login_required
-def view():
+def view(status):
     """
     A route producing a home screen, displaying all the active reckons
     """
+    if status == "ended":
+        reckons = Reckon.query.\
+            filter_by(ended=True).\
+                order_by(Reckon.end_date.desc()).all()
+        show_active = False
+        current_page = "view_ended"
+    # Just show active ones
+    else:
+        reckons = Reckon.query.\
+            filter_by(ended=False).\
+                order_by(Reckon.end_date.desc()).all()
+    
+        show_active = True
+        current_page = "view_active"
 
-    g.reckons = Reckon.query.order_by(Reckon.end_date.desc()).all()
-
-    return render_template('reckons/view.html')
+    return render_template('reckons/view.html', reckons=reckons, current_page=current_page, show_active=show_active)
 
 @bp.route('create', methods=('GET', 'POST'))
 @login_required
@@ -28,6 +41,8 @@ def create():
     """
     A route to create a reckon
     """
+
+    current_page = "create"
 
     if request.method == "POST":
         question = request.form["question"]
@@ -102,7 +117,7 @@ def create():
             })
             return redirect(url_for('reckons.view'))
 
-    return render_template('reckons/create.html')
+    return render_template('reckons/create.html', current_page=current_page)
 
 @bp.route('/edit/<int:id>', methods=('GET', 'POST'))
 @login_required
