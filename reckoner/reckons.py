@@ -14,7 +14,9 @@ bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 @bp.route('view')
 @login_required
 def view():
-    # Get all reckons
+    """
+    A route producing a home screen, displaying all the active reckons
+    """
 
     g.reckons = Reckon.query.order_by(Reckon.end_date.desc()).all()
 
@@ -23,6 +25,9 @@ def view():
 @bp.route('create', methods=('GET', 'POST'))
 @login_required
 def create():
+    """
+    A route to create a reckon
+    """
 
     if request.method == "POST":
         question = request.form["question"]
@@ -32,7 +37,7 @@ def create():
         error = None 
 
 
-        # Basic checks
+        # Basic checks 
         if question == "" or question is None:
             error = "Please enter a question."
         elif options == "" or options is None:
@@ -40,6 +45,7 @@ def create():
         elif end_date == "" or end_date is None:
             error = "Please enter an end date."
         
+        # Reject the form if any basic checks fail
         if error is not None:
             print("error")
             flash({
@@ -48,6 +54,8 @@ def create():
             })
 
             return render_template('reckons/create.html')
+        
+        # Now try to convert the date, rejecting if it fails
         try: 
             formatted_end_date = datetime.fromisoformat(end_date)        
         except:
@@ -57,9 +65,17 @@ def create():
             })
             return render_template('reckons/create.html')
 
+        # Split the options and reject if there are fewer than two
         option_list = options.split("\r\n")
-        print(option_list)
         
+        if len(option_list) < 2:
+            flash({
+                "message": "Not enough options - there must be at least 2.",
+                "style": "danger"
+            })
+            return render_template('reckons/create.html')
+        
+        # Create the reckon if everything is OK
         if error is None:
             new_reckon = Reckon(
                 question = question,
@@ -71,6 +87,7 @@ def create():
             db.session.add(new_reckon)
             db.session.commit()
 
+            # Need to create each option individually.
             for option in option_list:
                 new_option = ReckonOption(
                     option = option,
@@ -90,20 +107,43 @@ def create():
 @bp.route('/edit/<int:id>', methods=('GET', 'POST'))
 @login_required
 def edit(id):
+    """
+    Route to edit a reckon, handling the case where responses are already logged
+    """
 
-    # Check if there are any entries - if so, lock 
-    # the question and options
-
-    # add a delete button
-
+    # Get the reckon specified by the edit
     reckon = Reckon.query.filter_by(id=id).first()
-    #reckon_options = ReckonOption.query.filter_by(reckon_id = reckon.id).all()
 
+    if reckon is None:
+        flash({
+            "message": "Invalid reckon ID.",
+            "style": "danger"
+        })
+        return redirect(url_for('reckons.view'))
+
+    # Populate a dict so we can fill in the info in the form
+    reckon_form = {
+        "question": reckon.question,
+        "options": "\r\n".join([i.option for i in reckon.options]),
+        "end_date": reckon.end_date
+    }
+
+    # Now we check if responses have been logged, and lock the relevant
+    # Form elements if they have
+
+    locked = False
+    if len(reckon.responses) > 0:
+        locked=True
+
+        flash({
+            "message": "Reckons have already been recorded for this question, so the question and options cannot be edited.",
+            "style": "info"
+        })
+
+        return render_template('reckons/edit.html', reckon=reckon_form, locked=locked)       
 
     if request.method == "POST":
-        # First check if anyone has made a reckon
-        #existing_answers = ReckonResponse.query.filter_by()
-        #if len(reckon.responses) > 0:
+
 
         question = request.form["question"]
         options = request.form["options"]
@@ -118,6 +158,7 @@ def edit(id):
         elif end_date == "" or end_date is None:
             error = "Please enter an end date."
         
+        # Reject the form if there is an error
         if error is not None:
             print("error")
             flash({
@@ -125,7 +166,9 @@ def edit(id):
                 "style": "danger"
             })
 
-            return render_template('reckons/create.html')
+            return render_template('reckons/edit.html')
+
+        # Check the date is valid, rejecting if not
         try: 
             formatted_end_date = datetime.fromisoformat(end_date)        
         except:
@@ -133,16 +176,24 @@ def edit(id):
                 "message": "Invalid date format.",
                 "style": "danger"
             })
-            return render_template('reckons/create.html')
+            return render_template('reckons/edit.html')
 
+        # Check we have enough options still
         option_list = options.split("\r\n")
-
+        if len(option_list) < 2:
+            flash({
+                "message": "Not enough options - there must be at least 2.",
+                "style": "danger"
+            })
+            return render_template('reckons/edit.html')
+        
+        # If everything has gone OK
         if error is None:
             # Only update the question if nobody has responded
             if len(reckon.responses) == 0:
                 reckon.question = question
 
-            # Otherwise just ipdate 
+            # Otherwise just update the date 
             reckon.end_date = formatted_end_date
             reckon.edit_date = datetime.now()
 
@@ -158,6 +209,7 @@ def edit(id):
                     db.session.delete(option)
                 db.session.commit()
 
+                # Then add our new ones
                 for option in option_list:
                     new_option = ReckonOption(
                         option = option,
@@ -172,31 +224,25 @@ def edit(id):
             })
             return redirect(url_for('reckons.view'))
 
-    reckon_form = {
-        "question": reckon.question,
-        "options": "\r\n".join([i.option for i in reckon.options]),
-        "end_date": reckon.end_date
-    }
-
-    locked = False
-    if len(reckon.responses) > 0:
-        locked=True
-
-        flash({
-            "message": "Reckons have already been recorded for this question, so the question and options cannot be edited.",
-            "style": "info"
-        })
-
-        return render_template('reckons/edit.html', reckon=reckon_form, locked=locked)       
-    
     return render_template('reckons/edit.html', reckon=reckon_form)
 
 
 @bp.route('/answer/<int:id>', methods=('GET', 'POST'))
 @login_required
 def answer(id):
+    """
+    Route to handle a user answering a reckon
+    """
 
+    # Grab the reckon
     reckon = Reckon.query.filter_by(id=id).first()
+
+    if reckon is None:
+        flash({
+            "message": "Invalid reckon ID.",
+            "style": "danger"
+        })
+        return redirect(url_for('reckons.view'))
 
     # First check if this reckon has ended, and prevent answers if so
     if reckon.end_date < datetime.now():
@@ -206,9 +252,11 @@ def answer(id):
         })
         return redirect(url_for('reckons.view'))
 
+    # Get the last response by the user
     last_response = ReckonResponse.query.filter_by(user_id=current_user.id).order_by(ReckonResponse.response_date.desc()).first()
-    #print(last_response.response_answers)
-    # Get the newest guesses so they can be loaded up
+
+    # Now we need to map this to a dict which works with the form,
+    # i.e. uses the correct labels
     previous_reckon_answers = None
     if last_response is not None:
         previous_reckon_answers = {}
@@ -217,6 +265,9 @@ def answer(id):
             previous_reckon_answers[name] = response_answer.probability
 
     if request.method == "POST":
+
+        # Extract the answers from the form by assembling the appropriate
+        # names (i.e. option<option_id>)
         response_keys = {}
         for option in reckon.options:
             name = "option{}".format(option.id)
@@ -224,6 +275,7 @@ def answer(id):
             if request.form[name] is None:
                 response_keys[option.id] = 0.0
 
+        # Check if everything adds up
         if sum(response_keys.values()) != 1.0:
             flash({
                 "message": "Probabilities must sum to one.",
@@ -231,6 +283,7 @@ def answer(id):
             })
             return render_template('reckons/answer.html', reckon=reckon)
         else:
+            # Commit the response
             new_response = ReckonResponse(
                     reckon_id = reckon.id,
                     user_id = current_user.id,
@@ -239,6 +292,7 @@ def answer(id):
             db.session.add(new_response)
             db.session.commit()
 
+            # Then commit each of the option responses, i.e. probabilities
             for k,v in response_keys.items():
                 new_answer_response = ReckonOptionResponse(
                     reckon_response_id = new_response.id,
@@ -260,7 +314,11 @@ def answer(id):
 @bp.route('/settle/<int:id>', methods=('GET', 'POST'))
 @login_required
 def settle(id):
+    """
+    Route to settle a reckon, only available to the creator
+    """
 
+    # Get the reckon
     reckon = Reckon.query.filter_by(id=id).first()
     
     if reckon is None:
@@ -283,9 +341,7 @@ def settle(id):
                 "style": "danger"
             })
             return redirect(url_for('reckons.settle'))
-        
-
-
+    
         if settle is None:
             # Commit a new settle
             new_settle = SettledReckon(
@@ -320,6 +376,11 @@ def settle(id):
 @bp.route('/board/<int:id>')
 @login_required
 def board(id):
+    """
+    A route for a simple leaderboard for a given reckon
+    """
+    
+    # Get and check the reckon
     reckon = Reckon.query.filter_by(id=id).first()
     
     if reckon is None:
@@ -343,7 +404,7 @@ def board(id):
             user_responses.append(response)
 
     
-    # Check for a settle
+    # Check for a settle, so we can highlight the winning row
     settle = SettledReckon.query.filter_by(reckon_id=reckon.id).first()        
 
     return render_template('reckons/board.html', reckon=reckon, responses=user_responses, settle=settle)

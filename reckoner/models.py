@@ -5,12 +5,15 @@ from flask.cli import with_appcontext
 from flask_login import UserMixin
 
 import click
-# app = Flask(__name__)
 
-#db = SQLAlchemy()
 from .__init__ import db
 
 class Reckon(db.Model):
+    """
+    A Reckon, i.e. a question posed by a user to which all users can reply.
+
+    This may have multiple ReckonOptions, ReckonResponses, ReckonOptionResponses and one SettledReckon.
+    """
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String(240), nullable=False)
     creation_date = db.Column(db.DateTime, nullable=False)
@@ -21,15 +24,11 @@ class Reckon(db.Model):
 
     user = db.relationship('User', backref=db.backref('reckons', lazy=True))
 
-# class ReckonAnswer(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
-#     reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
-#     creation_date = db.Column(db.DateTime, nullable=False)
-
-#     reckon = db.relationship('Reckon', backref=db.backref('answer', lazy=True))
-
 class ReckonOption(db.Model):
+    """
+    Describes an option for a Reckon, i.e. one of the possible
+    answers
+    """
     id = db.Column(db.Integer, primary_key=True)
     option = db.Column(db.String(240), nullable=False)
     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
@@ -37,6 +36,12 @@ class ReckonOption(db.Model):
     reckon = db.relationship('Reckon', backref=db.backref('options', lazy=True))
 
 class ReckonResponse(db.Model):
+    """
+    Describes a response to a Reckon, i.e. a user making an estimate 
+    for each of the ReckonOptions associated with that reckon.
+
+    This describes the response as a whole, with individual estimates stored in ReckonOptionResponse.
+    """
     id = db.Column(db.Integer, primary_key=True)
     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -47,6 +52,9 @@ class ReckonResponse(db.Model):
     
 
 class ReckonOptionResponse(db.Model):
+    """
+    A single response to a ReckonOption, which belongs to a ReckonResponse. A user may have multiple ReckonOptionResponses per ReckonResponse.
+    """
     id = db.Column(db.Integer, primary_key=True)
     reckon_response_id = db.Column(db.Integer, db.ForeignKey('reckon_response.id'), nullable=False)
     reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
@@ -56,6 +64,9 @@ class ReckonOptionResponse(db.Model):
     reckon_option = db.relationship('ReckonOption', backref=db.backref('responses', lazy=True))
 
 class SettledReckon(db.Model):
+    """
+    The settlement for a Reckon, i.e. the final result. One SettledReckon per Reckon.
+    """
     id = db.Column(db.Integer, primary_key=True)
     reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False, unique=True)
     reckon_option_id = db.Column(db.Integer, db.ForeignKey('reckon_option.id'), nullable=False)
@@ -65,6 +76,9 @@ class SettledReckon(db.Model):
 
 
 class User(db.Model, UserMixin):
+    """
+    A simple model for a site user.
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), nullable=False)

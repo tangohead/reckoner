@@ -15,6 +15,18 @@ bp = Blueprint('auth', __name__, url_prefix="/auth")
 
 # From https://stackoverflow.com/questions/60532973/how-do-i-get-a-is-safe-url-function-to-use-with-flask-and-how-does-it-work
 def is_safe_url(target):
+    """Checks if a redirect URL is safe, particularly after login
+
+    Parameters
+    ----------
+    target : 
+        Target URL to check
+
+    Returns
+    -------
+    Boolean
+        True if safe, else False
+    """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
@@ -22,9 +34,16 @@ def is_safe_url(target):
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
+    """Route to handle registering users
+
+    Returns
+    -------
+    Response
+        A response, either the registration page or a redirect to login
+    """
     if request.method == "POST":
         print(len(request.form))
-        #TODO fill in register code
+        
         email = request.form["email"]
         name = request.form["name"]
         pwd1 = request.form["password1"]
@@ -32,6 +51,7 @@ def register():
 
         error = None
 
+        # Basic sanity checks
         if not email:
             error = "Email is required."
         elif not name:
@@ -47,6 +67,7 @@ def register():
         elif User.query.filter_by(email=email).first() is not None:
             error = "An account with this email address already exists."
 
+        # Now create the user and commit to the database
         if error is None:
             new_user = User(
                 name = name,
@@ -62,18 +83,26 @@ def register():
                 })
             return redirect(url_for("auth.login"))
         
+        # If something has failed, display the error
         flash({"message": error, "style": "danger"})
 
     return render_template('auth/register.html')
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
+    """Route for logging users in 
+
+    Returns
+    -------
+    Response
+        Either a redirect to the user account page or a failed log in, returning to the log in page.
+    """
 
     if request.method == "POST":
         email = request.form["email"]
         pwd = request.form["password"]
 
-        print(User.query.filter_by(email=email).first())
+        # Basic sanity checks
         if not email:
             error = "Please enter an email address."
         elif not pwd:
@@ -83,9 +112,12 @@ def login():
         else:
             # Now get the user to check the password
             user = User.query.filter_by(email=email).first()
+            
+            # Check the password is correct
             if not check_password_hash(user.password, pwd):
                 error = "Incorrect username or password."
             else:
+                # Let LoginManager handle the log in
                 login_user(user)
 
                 flash("Logged in successfully!")
@@ -106,12 +138,24 @@ def login():
 @bp.route('/account')
 @login_required
 def account():
+    """Route for a simple account page
 
+    Returns
+    -------
+        Rendered Jinja template
+    """
     return render_template('auth/account.html')
 
 @bp.route('/logout')
 @login_required
 def logout():
+    """Route for logout, returning user to login page
+
+    Returns
+    -------
+    Response
+        Response redirecting user to login page
+    """
     logout_user()
     flash({"message": "Logout successful.", "style": "info"})
     return redirect(url_for('auth.login'))
