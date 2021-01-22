@@ -57,7 +57,12 @@ def create_app(test_config=None):
 
     # Set up SQLAlchemy and login manager
     with app.app_context():
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./test.db'
+        app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+psycopg2://{}:{}@localhost:{}/{}".format(
+            credentials.DB_USER,
+            credentials.DB_PASSWORD,
+            credentials.DB_PORT,
+            credentials.DB_NAME
+        )
         db.init_app(app)
         login_manager.init_app(app)
     

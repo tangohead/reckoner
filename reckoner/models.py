@@ -88,7 +88,14 @@ class User(db.Model, UserMixin):
     reckon = db.relationship('Reckon', backref=db.backref('creator', lazy=True))
     reckon_response = db.relationship('ReckonResponse', backref=db.backref('reckon_responses', lazy=True))
 
+class UserReckonScore(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reckon_id = db.Column(db.Integer, db.ForeignKey('reckon.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    score = db.Column(db.Float, nullable=False)
 
+    user = db.relationship('User', backref=db.backref('scores', lazy=True))
 
 # Define command line arg called init-db 
 @click.command('init-db')

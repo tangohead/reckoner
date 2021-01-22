@@ -1,0 +1,78 @@
+{% extends 'reckon_base.html' %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block header %}
+<h2>Leaderboard</h2>
+{% endblock %}
+
+{% block content %}
+
+    {% with flash_messages = get_flashed_messages() %}
+
+        {% if flash_messages %}
+            {% for message in get_flashed_messages() %}
+                {% if message["message"] %}
+                    <div class="alert alert-{{ message["style"] }}" role="alert">
+                        {{ message["message"] }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% include 'reckons/nav.html' %}
+
+    <div class="row py-3">
+        <div class="col-12">
+
+        {% if leaderboard %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            Rank
+                        </th>
+                        <th scope="col">
+                            Name
+                        </th>
+                        <th scope="col">
+                            Reckons Partaken
+                        </th>
+                        <th scope="col">
+                            Average Brier Score
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in leaderboard %}
+                    
+                    <tr>
+                        <td>
+                            # {{loop.index}}
+                        </td>
+                        <td>
+                            {{ user.name }}
+                        </td>
+                        <td>
+                            {{ user.responses }}
+                        </td>
+                        <td>
+                            {% if user.avg_score == -1%}
+                                No Score
+                            {% else %} 
+                                {{ user.avg_score }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            Nobody has made any scores yet! 
+        {% endif %}
+                
+            </div>
+        </div>
+
+    {% endblock %}

@@ -6,8 +6,10 @@ from flask import (
 
 from flask_login import login_required, current_user
 
+from sqlalchemy import func
+
 from .__init__ import db, login_manager
-from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonOptionResponse, SettledReckon
+from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonOptionResponse, SettledReckon, UserReckonScore
 
 bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 
@@ -378,6 +380,47 @@ def settle(id):
         db.session.add(reckon)
         db.session.commit()
 
+        # Then we need to go through each user and compute the Brier Score
+        #last_response = ReckonResponse.query.filter_by(user_id=current_user.id).order_by(ReckonResponse.response_date.desc()).first()
+
+        # There is a better way to do this with windows but flask-sqlalchemy
+        # makes it hard
+        # Grab the users who have responded
+        respondents = ReckonResponse.query.filter_by(reckon_id=reckon.id).with_entities(ReckonResponse.user_id).distinct().all()
+        for respondent in respondents:
+            newest_response = ReckonResponse.query.\
+                filter_by(reckon_id=reckon.id, user_id=respondent[0]).\
+                    order_by(ReckonResponse.response_date.desc()).first()
+            
+            # Get the responses
+            newest_answers = ReckonOptionResponse.query.\
+                filter_by(reckon_response_id=newest_response.id).all()
+
+            #Calclulate the brier score components
+            correct_option_int = int(correct_option)
+            sq_err = [(1-i.probability)**2 \
+                if i.reckon_option_id == correct_option_int \
+                else (0-i.probability)**2 \
+                 for i in newest_answers]
+
+            # Retrieve any existing scores for this reckon
+            existing_user_score = UserReckonScore.query.\
+                filter_by(user_id=respondent.user_id, reckon_id=reckon.id).first()
+            
+            if existing_user_score is None:
+                db.session.add(UserReckonScore(
+                    reckon_id=reckon.id,
+                    user_id =respondent.user_id,
+                    date = datetime.now(),
+                    score = sum(sq_err)
+                ))
+            else: # Update the score
+                existing_user_score.score = sum(sq_err)
+                existing_user_score.date = datetime.now()
+                db.session.add(existing_user_score)
+                
+            db.session.commit()    
+
         flash({
             "message": "Reckon settled successfully.",
             "style": "success"
@@ -423,3 +466,34 @@ def board(id):
     settle = SettledReckon.query.filter_by(reckon_id=reckon.id).first()        
 
     return render_template('reckons/board.html', reckon=reckon, responses=user_responses, settle=settle)
+
+@bp.route('/leaderboard')
+@login_required
+def leaderboard():
+    """
+    A route to display a simple leaderboard. Sum of all scores for now.
+    """
+
+    sorted_leaderboard = None
+    # Generate a row for each user
+    if UserReckonScore.query.all() is not None:
+        users = User.query.all()
+
+        leaderboard_data = []
+
+        for user in users:
+            avg_score = None
+            if len(user.scores) > 0:
+                avg_score = sum([i.score for i in user.scores])/len(user.scores)
+
+
+            leaderboard_data.append({
+                "name": user.name,
+                "responses": len(user.scores),
+                "avg_score": avg_score if avg_score is not None else -1
+            })
+
+        sorted_leaderboard = sorted(leaderboard_data, key=lambda k: k["avg_score"])
+
+    return render_template('reckons/leaderboard.html', leaderboard=sorted_leaderboard, current_page="leaderboard")
+
