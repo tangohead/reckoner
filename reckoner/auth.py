@@ -4,7 +4,7 @@ from flask import (
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flask_login import login_user, login_required, logout_user
+from flask_login import login_user, login_required, logout_user, current_user
 
 from .__init__ import db, login_manager
 from .models import User
@@ -172,4 +172,59 @@ def logout():
     flash({"message": "Logout successful.", "style": "info"})
     return redirect(url_for('auth.login'))
 
+@bp.route('/change_password', methods=('GET', 'POST'))
+@login_required
+def change_password():
+    """ 
+    Route to handle password changes.
+    """
 
+    if request.method=="POST":
+        old_pwd = request.form["passwordOld"]
+        new_pwd_1 = request.form["password1"]
+        new_pwd_2 = request.form["password2"]
+
+        error = None 
+        if old_pwd is None:
+            error = "You must enter your current password."
+        elif new_pwd_1 is None:
+            error = "You must enter a new password."
+        elif new_pwd_2 is None:
+            error = "You must re-enter your new password."
+        elif new_pwd_1 != new_pwd_2:
+            error = "Your new passwords do not match."
+        elif len(new_pwd_1) < 8:
+            error = "You new password is too short - must be over eight characters."
+        
+        if error:
+            flash({
+                "message": error,
+                "style": "danger"
+            })
+
+            return render_template('auth/change_password.html')
+
+        # Now get the user and check if the old password is correct
+        if not check_password_hash(current_user.password, old_pwd):
+            flash({
+                "message": "You have entered an incorrect current password.",
+                "style": "danger"
+            })
+
+            return render_template('auth/change_password.html')
+
+        # Finally update the user and force a logout/login
+        updated_user = current_user
+        updated_user.password = generate_password_hash(new_pwd_1)
+        db.session.add(updated_user)
+        db.session.commit()
+
+        logout_user()
+        flash({
+            "message": "Password change successful. Please log in.", 
+            "style": "info"
+            })
+        return redirect(url_for('auth.login'))
+
+
+    return render_template('auth/change_password.html')

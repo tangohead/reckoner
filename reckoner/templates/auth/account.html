@@ -9,5 +9,26 @@
 {% endblock %}
 
 {% block content %}
-    {{ current_user.name }}
+    <div class="row py-3">
+        <div class="col-12">
+            There isn't much here right now!
+            <br />
+            Things to do:
+            
+            <ul>
+                <li>
+                    <a href="{{url_for('auth.change_password')}}">
+                        Change password?
+                    </a>
+                </li>
+                <li>
+                    <a href="{{url_for('reckons.view')}}">
+                        Take me to the reckons! 
+                    </a>
+                </li>
+            </ul>
+
+
+        </div>
+    </div>
 {% endblock %}

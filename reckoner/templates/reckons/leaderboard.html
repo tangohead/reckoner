@@ -40,7 +40,10 @@
                             Reckons Partaken
                         </th>
                         <th scope="col">
-                            Average Brier Score
+                            30 Day Avg. Brier Score
+                        </th>
+                        <th scope="col">
+                            All-time Avg. Brier Score
                         </th>
                     </tr>
                 </thead>
@@ -58,10 +61,17 @@
                             {{ user.responses }}
                         </td>
                         <td>
+                            {% if user.monthly_avg == -1%}
+                                No Score
+                            {% else %} 
+                                {{ user.monthly_avg | round(2)}}
+                            {% endif %}
+                        </td>
+                        <td>
                             {% if user.avg_score == -1%}
                                 No Score
                             {% else %} 
-                                {{ user.avg_score }}
+                                {{ user.avg_score | round(2)}}
                             {% endif %}
                         </td>
                     </tr>

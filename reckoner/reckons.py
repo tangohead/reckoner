@@ -493,13 +493,24 @@ def leaderboard():
 
         for user in users:
             avg_score = None
+            monthly_avg = None
             if len(user.scores) > 0:
                 avg_score = sum([i.score for i in user.scores])/len(user.scores)
+            
+            month_scores = []
+            for score in user.scores:
+                print(score.date)
+                if (datetime.now() - score.date).days < 30:
+                    month_scores.append(score.score)
+            
+            if len(month_scores) > 0:
+                monthly_avg = sum(month_scores)/len(month_scores)
 
 
             leaderboard_data.append({
                 "name": user.name,
                 "responses": len(user.scores),
+                "monthly_avg": monthly_avg if monthly_avg is not None else -1,
                 "avg_score": avg_score if avg_score is not None else -1
             })
 
