@@ -52,9 +52,10 @@ def create_app(test_config=None):
 
     # Set up SQLAlchemy and login manager
     with app.app_context():
-        app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+psycopg2://{}:{}@localhost:{}/{}".format(
+        app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
             credentials.DB_USER,
             credentials.DB_PASSWORD,
+            credentials.DB_HOSTNAME,
             credentials.DB_PORT,
             credentials.DB_NAME
         )
