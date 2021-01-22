@@ -11,7 +11,7 @@ from .models import User
 
 from urllib.parse import urlparse, urljoin
 
-from . import credentials
+from . import config
 
 bp = Blueprint('auth', __name__, url_prefix="/auth")
 
@@ -46,7 +46,7 @@ def register():
 
     # First check if registration is open
 
-    if not credentials.REGISTRATION_OPEN:
+    if not config.REGISTRATION_OPEN:
         flash({
             "message": "Sorry, registration is not open at this time.",
             "style": "info"
