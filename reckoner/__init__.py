@@ -12,6 +12,8 @@ from flask import flash, redirect, url_for
 
 from .models import *
 
+import os
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 
@@ -33,7 +35,7 @@ def create_app(test_config=None):
     from . import credentials
 
     app.config.from_mapping(
-        SECRET_KEY=credentials.SECRET_KEY,
+        SECRET_KEY=os.environ["SECRET_KEY"],
         DATABASE=os.path.join(app.instance_path, "reckoner.sqlite"),
     )
 
@@ -53,11 +55,11 @@ def create_app(test_config=None):
     # Set up SQLAlchemy and login manager
     with app.app_context():
         app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
-            credentials.DB_USER,
-            credentials.DB_PASSWORD,
-            credentials.DB_HOSTNAME,
-            credentials.DB_PORT,
-            credentials.DB_NAME
+            os.environ["POSTGRES_USER"],
+            os.environ["POSTGRES_PASSWORD"],
+            os.environ["POSTGRES_HOSTNAME"],
+            os.environ["POSTGRES_PORT"],
+            os.environ["POSTGRES_DB"]
         )
         db.init_app(app)
         login_manager.init_app(app)
