@@ -36,10 +36,44 @@ flask init-db
 flask run
 ```
 
-You will need to create `credentials.py` in the `reckoner` directory. Currently, this should contain the following:
-```
-SECRET_KEY='your_flask_secret_key_here'
-```
+You will need to create two environment files for Docker, or set environment variables for use with `flask run`.
 
-This will be updated when the project is ready to be run in deployment.
+You will always need `db.env` of the form:
+```
+POSTGRES_USER='xxx'
+POSTGRES_DB='xxx'
+POSTGRES_PASSWORD='xxx'
+```
+If you are deploying, you will need `site.env` of the form:
+```
+POSTGRES_USER='xxx'
+POSTGRES_DB='xxx'
+POSTGRES_PASSWORD='xxx'
+POSTGRES_HOSTNAME="db"
+POSTGRES_PORT=5432
+SECRET_KEY='xxx'
+```
+For use with `flask run`, i.e. locally, you will need to set:
+```
+POSTGRES_USER='xxx'
+POSTGRES_DB='xxx'
+POSTGRES_PASSWORD='xxx'
+POSTGRES_HOSTNAME="db"
+POSTGRES_PORT=5433
+SECRET_KEY='xxx'
+```
+Note the differing Postgres port number - this helps avoid a conflict if you have a local Postgres install.
+
+Then to run locally, do:
+```
+docker-compose up db -d
+flask run
+```
+The site will be served on 5000 and will update as changes are made.
+
+To run with `gunicorn` and Docker, just do:
+```
+docker-compose up
+```
+The site will be served on port 8000.
 
