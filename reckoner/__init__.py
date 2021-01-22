@@ -6,7 +6,7 @@ from flask.cli import with_appcontext
 
 import click
 
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 from flask import flash, redirect, url_for
 
@@ -47,11 +47,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # Simple page saying hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello world!'
-
     # Set up DB initialisation command
     app.cli.add_command(init_db_command)
 
@@ -74,7 +69,21 @@ def create_app(test_config=None):
     from . import reckons
     app.register_blueprint(reckons.bp)
 
+    @app.route('/')
+    def index():
+        """ 
+        Simple index, either putting the user to the login page or to
+        view reckons
+        """
+        if current_user.is_authenticated:
+            return redirect(url_for('reckons.view'))
+        else:
+            return redirect(url_for('auth.login'))
+
+
     return app
+
+
 
 
 @login_manager.user_loader

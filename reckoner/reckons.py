@@ -13,6 +13,16 @@ from .models import User, Reckon, ReckonOption, ReckonResponse, ReckonOptionResp
 
 bp = Blueprint('reckons', __name__, url_prefix="/reckons")
 
+@bp.route('/')
+@login_required
+def index():
+    """ 
+    Simple index, either putting the user to the login page or to
+    view reckons
+    """    
+    return redirect(url_for('reckons.view'))
+    
+
 @bp.route('view', defaults={"status":"active"})
 @bp.route('view/<status>')
 @login_required
