@@ -11,6 +11,8 @@ from .models import User
 
 from urllib.parse import urlparse, urljoin
 
+from . import credentials
+
 bp = Blueprint('auth', __name__, url_prefix="/auth")
 
 # From https://stackoverflow.com/questions/60532973/how-do-i-get-a-is-safe-url-function-to-use-with-flask-and-how-does-it-work
@@ -41,6 +43,16 @@ def register():
     Response
         A response, either the registration page or a redirect to login
     """
+
+    # First check if registration is open
+
+    if not credentials.REGISTRATION_OPEN:
+        flash({
+            "message": "Sorry, registration is not open at this time.",
+            "style": "info"
+        })
+        return redirect(url_for('auth.login'))
+
     if request.method == "POST":
         print(len(request.form))
         
