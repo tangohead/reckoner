@@ -8,7 +8,7 @@ import click
 
 from flask_login import LoginManager, current_user
 
-from flask import flash, redirect, url_for
+from flask import flash, redirect, url_for, request
 
 from .models import *
 
@@ -34,7 +34,6 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY=os.environ["SECRET_KEY"],
-        DATABASE=os.path.join(app.instance_path, "reckoner.sqlite"),
     )
 
     if test_config is None:
@@ -83,8 +82,6 @@ def create_app(test_config=None):
 
 
     return app
-
-
 
 
 @login_manager.user_loader
