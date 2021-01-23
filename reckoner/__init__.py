@@ -10,6 +10,8 @@ from flask_login import LoginManager, current_user
 
 from flask import flash, redirect, url_for, request
 
+from flask_talisman import Talisman
+
 from .models import *
 
 import os
@@ -35,6 +37,16 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ["SECRET_KEY"],
     )
+
+    csp = {
+        'default-src': [
+                '\'self\'',
+                'cdnjs.cloudflare.com',
+                'cdn.jsdelivr.net'
+            ]
+        }
+
+    Talisman(app, content_security_policy=csp)
 
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
@@ -80,25 +92,8 @@ def create_app(test_config=None):
         else:
             return redirect(url_for('auth.login'))
 
-    
-    @app.before_request
-    def before_request():
-        """
-        Enforce SSL if we're not in def. Based on 
-        https://stackoverflow.com/questions/32237379/python-flask-redirect-to-https-from-http
-        """
-
-        if not request.is_secure and app.env != "development":
-            url = request.url.replace("http://", "https://", 1)
-            code = 301
-            return redirect(url, code=code)
-        else:
-            print("hi")
-
 
     return app
-
-
 
 
 
