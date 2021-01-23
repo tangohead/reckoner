@@ -17,7 +17,7 @@ services:
     env_file:
       - site.env
     ports:
-      - 8000:4000
+      - 80:4000
 
   # adminer:
   #   image: adminer

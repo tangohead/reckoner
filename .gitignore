@@ -21,3 +21,6 @@ credentials.py
 
 *.env
 *_env.ps1
+*_env.sh
+
+*.pem
