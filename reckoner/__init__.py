@@ -80,8 +80,26 @@ def create_app(test_config=None):
         else:
             return redirect(url_for('auth.login'))
 
+    
+    @app.before_request
+    def before_request():
+        """
+        Enforce SSL if we're not in def. Based on 
+        https://stackoverflow.com/questions/32237379/python-flask-redirect-to-https-from-http
+        """
+
+        if not request.is_secure and app.env != "development":
+            url = request.url.replace("http://", "https://", 1)
+            code = 301
+            return redirect(url, code=code)
+        else:
+            print("hi")
+
 
     return app
+
+
+
 
 
 @login_manager.user_loader
