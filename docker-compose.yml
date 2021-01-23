@@ -9,6 +9,8 @@ services:
       - 5433:5432
     env_file:
       - db.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
   site:
     build:
@@ -18,6 +20,9 @@ services:
       - site.env
     ports:
       - 80:4000
+      
+volumes: 
+  pgdata:
 
   # adminer:
   #   image: adminer
