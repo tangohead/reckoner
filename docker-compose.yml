@@ -20,7 +20,10 @@ services:
       - site.env
     ports:
       - 80:4000
-      
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+
 volumes: 
   pgdata:
 
