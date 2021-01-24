@@ -41,9 +41,12 @@ def create_app(test_config=None):
     csp = {
         'default-src': [
                 '\'self\'',
-                'cdnjs.cloudflare.com',
-                'cdn.jsdelivr.net'
-            ]
+               'cdn.jsdelivr.net'
+            ],
+        'img-src': [
+            '\'self\'',
+            'data:'
+        ]
         }
 
     Talisman(app, content_security_policy=csp)
