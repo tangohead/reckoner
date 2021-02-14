@@ -138,11 +138,9 @@
                                 {{ reckon.end_date }}
                             </td>
                             <td>
-                                {% if reckon.creator_id == current_user.id %}
-                                    <a href="{{ url_for('reckons.board', id=reckon.id)}}">
-                                        Board
-                                    </a>
-                                {% endif %}
+                                <a href="{{ url_for('reckons.board', id=reckon.id)}}">
+                                    Board
+                                </a>
                             </td>
                             <td>
                                 {% if reckon.creator_id == current_user.id %}
