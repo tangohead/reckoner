@@ -160,18 +160,19 @@ def edit(id):
 
     locked = False
     if len(reckon.responses) > 0:
-        locked=True
-
+        locked = True
+    print(locked)
+    
+    if request.method == "GET" and locked:
+        print("1")
         flash({
             "message": "Reckons have already been recorded for this question, so the question and options cannot be edited.",
             "style": "info"
         })
 
         return render_template('reckons/edit.html', reckon=reckon_form, locked=locked)       
-
-    if request.method == "POST":
-
-
+    elif request.method == "POST" and not locked:
+        print("2")
         question = request.form["question"]
         options = request.form["options"]
         end_date = request.form["enddate"]
@@ -250,8 +251,56 @@ def edit(id):
                 "style": "success"
             })
             return redirect(url_for('reckons.view'))
+    elif request.method == "POST" and locked:
+        print("3")
+        # This is a little bit of code duplication but is probably the best
+        # solution for now.
+        end_date = request.form["enddate"]
 
-    return render_template('reckons/edit.html', reckon=reckon_form)
+        error = None
+
+        if end_date == "" or end_date is None:
+            error = "Please enter an end date."
+        
+        # Reject the form if there is an error
+        if error is not None:
+            print("error")
+            flash({
+                "message": error,
+                "style": "danger"
+            })
+
+            return render_template('reckons/edit.html')
+
+        # Check the date is valid, rejecting if not
+        try: 
+            formatted_end_date = datetime.fromisoformat(end_date)        
+        except:
+            flash({
+                "message": "Invalid date format.",
+                "style": "danger"
+            })
+            return render_template('reckons/edit.html')
+        
+        # If everything has gone OK
+        if error is None:
+            # Otherwise just update the date
+            print("Hello") 
+            print(formatted_end_date)
+            reckon.end_date = formatted_end_date
+            reckon.edit_date = datetime.now()
+
+            db.session.add(reckon)
+            db.session.commit()
+
+            flash({
+                "message": "Reckon updated successfully!",
+                "style": "success"
+            })
+            return redirect(url_for('reckons.view'))
+            
+
+    return render_template('reckons/edit.html', reckon=reckon_form, locked=locked)
 
 
 @bp.route('/answer/<int:id>', methods=('GET', 'POST'))
